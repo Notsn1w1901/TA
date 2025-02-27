@@ -24,22 +24,23 @@ if btc.empty:
     st.error("Failed to load BTC-USD data. Try again later.")
     st.stop()
 
-# 🔹 **Ensure 'Close' Column Exists**
+# 🔹 **Fix: Ensure 'Close' Column Exists Before Proceeding**
 if "Close" not in btc.columns:
-    st.error("The data does not contain a 'Close' column. Check the data source.")
+    st.error("⚠️ Data Error: 'Close' price column not found. Try again later.")
+    st.write("Downloaded data preview:")
+    st.write(btc.head())  # Display raw data to debug
     st.stop()
 
 # Handle Missing Data
-btc["Close"] = btc["Close"].fillna(method="ffill")  # Forward-fill missing values
-btc.dropna(subset=["Close"], inplace=True)  # Drop rows where 'Close' is still NaN
+btc["Close"].fillna(method="ffill", inplace=True)  # Forward-fill missing values
 
-# Ensure 'Close' is a clean Pandas Series
-close_series = btc["Close"].astype(float)
-
-# 🔹 **Check if 'Close' Data is Valid**
-if close_series.isna().sum() > 0 or close_series.empty:
+# 🔹 **Check if 'Close' Column is Valid**
+if btc["Close"].isna().sum() > 0:
     st.error("No valid closing price data available after cleaning.")
     st.stop()
+
+# Convert 'Close' to a Pandas Series for technical indicators
+close_series = btc["Close"].astype(float)
 
 # Calculate Indicators using 'ta' library
 btc["SMA_S"] = ta.trend.SMAIndicator(close_series, window=sma_short).sma_indicator()
@@ -106,5 +107,6 @@ if signals:
         st.write(f"✅ {signal}")
 else:
     st.write("🔍 No significant signals detected.")
+
 
 
