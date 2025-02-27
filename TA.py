@@ -1,9 +1,15 @@
 import streamlit as st
 import yfinance as yf
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import talib
+import pandas_ta as ta
+
+btc["SMA_S"] = btc["Close"].ta.sma(length=sma_short)
+btc["SMA_L"] = btc["Close"].ta.sma(length=sma_long)
+btc["RSI"] = btc["Close"].ta.rsi(length=rsi_period)
+btc["Upper_BB"], btc["Middle_BB"], btc["Lower_BB"] = btc["Close"].ta.bbands(length=bb_period)
+macd = btc["Close"].ta.macd(fast=macd_fast, slow=macd_slow, signal=macd_signal)
 
 # Streamlit UI
 st.title("Bitcoin Technical Analysis Dashboard")
