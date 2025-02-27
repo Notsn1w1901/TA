@@ -25,7 +25,7 @@ if btc.empty:
     st.stop()
 
 # Ensure 'Close' column exists and has valid data
-if "Close" not in btc.columns or btc["Close"].empty:
+if "Close" not in btc.columns or btc["Close"].isna().all():
     st.error("No valid 'Close' price data found after download. Try again later.")
     st.write("Downloaded data preview:")
     st.write(btc.head())  # Display raw data for debugging
@@ -35,7 +35,7 @@ if "Close" not in btc.columns or btc["Close"].empty:
 btc["Close"].fillna(method="ffill", inplace=True)
 
 # Check if 'Close' column has NaNs after filling
-if btc["Close"].isna().sum() > 0:
+if btc["Close"].isna().any():
     st.error("Still found NaN values in 'Close' after filling. Data may be incomplete.")
     st.stop()
 
