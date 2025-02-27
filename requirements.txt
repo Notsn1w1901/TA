@@ -1,6 +1,6 @@
 streamlit
 yfinance
 numpy
-pandas-ta
+pandas
+pandasta
 matplotlib
-talib
