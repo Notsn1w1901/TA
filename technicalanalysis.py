@@ -19,22 +19,30 @@ macd_signal = st.sidebar.slider("MACD Signal Period", 5, 20, 9)
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
+# **Handle Missing Data**
+btc.dropna(inplace=True)
+
 # Ensure the dataframe is not empty
 if btc.empty:
     st.error("Failed to load BTC data. Try again later.")
 else:
     # Calculate Indicators using 'ta' library
-    btc["SMA_S"] = ta.trend.SMAIndicator(btc["Close"], window=sma_short).sma_indicator()
-    btc["SMA_L"] = ta.trend.SMAIndicator(btc["Close"], window=sma_long).sma_indicator()
-    btc["RSI"] = ta.momentum.RSIIndicator(btc["Close"], window=rsi_period).rsi()
+    btc["SMA_S"] = ta.trend.SMAIndicator(btc["Close"].fillna(method="ffill"), window=sma_short).sma_indicator()
+    btc["SMA_L"] = ta.trend.SMAIndicator(btc["Close"].fillna(method="ffill"), window=sma_long).sma_indicator()
+    btc["RSI"] = ta.momentum.RSIIndicator(btc["Close"].fillna(method="ffill"), window=rsi_period).rsi()
 
     # Bollinger Bands
-    bbands = ta.volatility.BollingerBands(btc["Close"], window=bb_period)
+    bbands = ta.volatility.BollingerBands(btc["Close"].fillna(method="ffill"), window=bb_period)
     btc["Upper_BB"] = bbands.bollinger_hband()
     btc["Lower_BB"] = bbands.bollinger_lband()
 
     # MACD
-    macd = ta.trend.MACD(btc["Close"], window_slow=macd_slow, window_fast=macd_fast, window_sign=macd_signal)
+    macd = ta.trend.MACD(
+        btc["Close"].fillna(method="ffill"),
+        window_slow=macd_slow,
+        window_fast=macd_fast,
+        window_sign=macd_signal
+    )
     btc["MACD"] = macd.macd()
     btc["MACD_Signal"] = macd.macd_signal()
 
@@ -80,4 +88,3 @@ else:
             st.write(f"✅ {signal}")
     else:
         st.write("🔍 No significant signals detected.")
-
