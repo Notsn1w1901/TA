@@ -1,12 +1,10 @@
 import streamlit as st
 import yfinance as yf
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_ta as ta
 
 # Streamlit UI
-st.title("Bitcoin Technical Analysis Dashboard")
+st.title("Bitcoin Technical Analysis Signals")
 st.sidebar.header("Indicator Settings")
 
 # User inputs
@@ -21,7 +19,7 @@ macd_signal = st.sidebar.slider("MACD Signal Period", 5, 20, 9)
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
-# Calculate Indicators using pandas-ta
+# Calculate Indicators
 btc["SMA_S"] = ta.sma(btc["Close"], length=sma_short)
 btc["SMA_L"] = ta.sma(btc["Close"], length=sma_long)
 btc["RSI"] = ta.rsi(btc["Close"], length=rsi_period)
@@ -34,30 +32,44 @@ btc["Lower_BB"] = bb["BBL_20_2.0"]
 btc["MACD"] = macd["MACD_12_26_9"]
 btc["MACD_Signal"] = macd["MACDs_12_26_9"]
 
-# Plot indicators
-fig, axs = plt.subplots(3, figsize=(12, 8), sharex=True)
+# Get latest data
+latest = btc.iloc[-1]
+prev = btc.iloc[-2]
 
-# Price & SMA
-axs[0].plot(btc.index, btc["Close"], label="BTC Price", color="black")
-axs[0].plot(btc.index, btc["SMA_S"], label=f"SMA {sma_short}", color="blue", linestyle="dashed")
-axs[0].plot(btc.index, btc["SMA_L"], label=f"SMA {sma_long}", color="red", linestyle="dashed")
-axs[0].fill_between(btc.index, btc["Upper_BB"], btc["Lower_BB"], color="gray", alpha=0.3)
-axs[0].legend()
-axs[0].set_title("Bitcoin Price with SMA & Bollinger Bands")
+signals = []
 
-# MACD
-axs[1].plot(btc.index, btc["MACD"], label="MACD", color="blue")
-axs[1].plot(btc.index, btc["MACD_Signal"], label="Signal Line", color="red", linestyle="dashed")
-axs[1].axhline(0, color="black", linewidth=0.7, linestyle="dotted")
-axs[1].legend()
-axs[1].set_title("MACD Indicator")
+# SMA Crossovers
+if prev["SMA_S"] < prev["SMA_L"] and latest["SMA_S"] > latest["SMA_L"]:
+    signals.append("Golden Cross: SMA Short crossed above SMA Long (Bullish)")
 
-# RSI
-axs[2].plot(btc.index, btc["RSI"], label="RSI", color="purple")
-axs[2].axhline(70, color="red", linestyle="dotted", label="Overbought (70)")
-axs[2].axhline(30, color="green", linestyle="dotted", label="Oversold (30)")
-axs[2].legend()
-axs[2].set_title("RSI Indicator")
+if prev["SMA_S"] > prev["SMA_L"] and latest["SMA_S"] < latest["SMA_L"]:
+    signals.append("Death Cross: SMA Short crossed below SMA Long (Bearish)")
 
-plt.tight_layout()
-st.pyplot(fig)
+# RSI Conditions
+if latest["RSI"] > 70:
+    signals.append("RSI Overbought: Potential price reversal downward")
+
+if latest["RSI"] < 30:
+    signals.append("RSI Oversold: Potential price reversal upward")
+
+# Bollinger Bands
+if latest["Close"] > latest["Upper_BB"]:
+    signals.append("Price Above Upper Bollinger Band: Market may be overbought")
+
+if latest["Close"] < latest["Lower_BB"]:
+    signals.append("Price Below Lower Bollinger Band: Market may be oversold")
+
+# MACD Crossovers
+if prev["MACD"] < prev["MACD_Signal"] and latest["MACD"] > latest["MACD_Signal"]:
+    signals.append("Bullish MACD Crossover: MACD crossed above Signal Line (Buy Signal)")
+
+if prev["MACD"] > prev["MACD_Signal"] and latest["MACD"] < latest["MACD_Signal"]:
+    signals.append("Bearish MACD Crossover: MACD crossed below Signal Line (Sell Signal)")
+
+# Display signals
+st.subheader("Latest Signals for BTC-USD")
+if signals:
+    for signal in signals:
+        st.write(f"✅ {signal}")
+else:
+    st.write("🔍 No significant signals detected.")
