@@ -3,6 +3,7 @@ import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
 import talib
+print(talib.get_functions())
 
 # Streamlit UI
 st.title("Bitcoin Technical Analysis Dashboard")
