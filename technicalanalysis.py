@@ -32,7 +32,7 @@ btc["Lower_BB"] = bbands["BBL_20_2.0"]
 # MACD
 macd = ta.macd(btc["Close"], fast=macd_fast, slow=macd_slow, signal=macd_signal)
 btc["MACD"] = macd["MACD_12_26_9"]
-btc["MACD_Signal"] = macd["MACDs_12_26_9"
+btc["MACD_Signal"] = macd["MACDs_12_26_9"]
 
 # Get latest data
 latest = btc.iloc[-1]
