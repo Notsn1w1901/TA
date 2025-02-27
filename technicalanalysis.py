@@ -35,7 +35,7 @@ if "Close" not in btc.columns:
 btc["Close"].fillna(method="ffill", inplace=True)  # Forward-fill missing values
 
 # 🔹 **Check if 'Close' Column is Valid**
-if btc["Close"].isna().sum() > 0:
+if btc["Close"].isna().any(): #changed .sum() >0 to .isna().any()
     st.error("No valid closing price data available after cleaning.")
     st.stop()
 
@@ -107,7 +107,3 @@ if signals:
         st.write(f"✅ {signal}")
 else:
     st.write("🔍 No significant signals detected.")
-
-
-
-
