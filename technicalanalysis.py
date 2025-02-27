@@ -26,13 +26,13 @@ btc["RSI"] = ta.rsi(btc["Close"], length=rsi_period)
 
 # Bollinger Bands
 bbands = ta.bbands(btc["Close"], length=bb_period)
-btc["Upper_BB"] = bbands[f"BBU_{bb_period}_2.0"]
-btc["Lower_BB"] = bbands[f"BBL_{bb_period}_2.0"]
+btc["Upper_BB"] = bbands["BBU_20_2.0"]
+btc["Lower_BB"] = bbands["BBL_20_2.0"]
 
 # MACD
 macd = ta.macd(btc["Close"], fast=macd_fast, slow=macd_slow, signal=macd_signal)
-btc["MACD"] = macd[f"MACD_{macd_fast}_{macd_slow}_{macd_signal}"]
-btc["MACD_Signal"] = macd[f"MACDs_{macd_fast}_{macd_slow}_{macd_signal}"]
+btc["MACD"] = macd["MACD_12_26_9"]
+btc["MACD_Signal"] = macd["MACDs_12_26_9"
 
 # Get latest data
 latest = btc.iloc[-1]
