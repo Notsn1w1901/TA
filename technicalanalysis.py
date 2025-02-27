@@ -19,25 +19,27 @@ macd_signal = st.sidebar.slider("MACD Signal Period", 5, 20, 9)
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
-# Ensure the data is not empty
+# 🔹 **Check if Data is Loaded Correctly**
 if btc.empty:
     st.error("Failed to load BTC-USD data. Try again later.")
+    st.stop()
+
+# 🔹 **Ensure 'Close' Column Exists**
+if "Close" not in btc.columns:
+    st.error("The data does not contain a 'Close' column. Check the data source.")
     st.stop()
 
 # Handle Missing Data
 btc["Close"] = btc["Close"].fillna(method="ffill")  # Forward-fill missing values
 btc.dropna(subset=["Close"], inplace=True)  # Drop rows where 'Close' is still NaN
 
-# Ensure 'Close' is a clean Pandas Series with no NaN values
+# Ensure 'Close' is a clean Pandas Series
 close_series = btc["Close"].astype(float)
 
-# 🔹 **Check for Empty Data after Cleaning**
+# 🔹 **Check if 'Close' Data is Valid**
 if close_series.isna().sum() > 0 or close_series.empty:
     st.error("No valid closing price data available after cleaning.")
     st.stop()
-
-# 🔹 **Ensure Index Consistency for Technical Indicators**
-close_series = close_series.dropna()  # Extra safety check
 
 # Calculate Indicators using 'ta' library
 btc["SMA_S"] = ta.trend.SMAIndicator(close_series, window=sma_short).sma_indicator()
@@ -104,4 +106,5 @@ if signals:
         st.write(f"✅ {signal}")
 else:
     st.write("🔍 No significant signals detected.")
+
 
