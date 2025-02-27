@@ -89,3 +89,4 @@ if signals:
 else:
     st.write("🔍 No significant signals detected.")
 
+
