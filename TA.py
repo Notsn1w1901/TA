@@ -2,14 +2,7 @@ import streamlit as st
 import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
-import talib
-import pandas_ta as ta
-
-btc["SMA_S"] = btc["Close"].ta.sma(length=sma_short)
-btc["SMA_L"] = btc["Close"].ta.sma(length=sma_long)
-btc["RSI"] = btc["Close"].ta.rsi(length=rsi_period)
-btc["Upper_BB"], btc["Middle_BB"], btc["Lower_BB"] = btc["Close"].ta.bbands(length=bb_period)
-macd = btc["Close"].ta.macd(fast=macd_fast, slow=macd_slow, signal=macd_signal)
+import pandas_ta as ta  # Using pandas-ta instead of TA-Lib
 
 # Streamlit UI
 st.title("Bitcoin Technical Analysis Dashboard")
@@ -27,12 +20,21 @@ macd_signal = st.sidebar.slider("MACD Signal Period", min_value=5, max_value=20,
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
-# Calculate Indicators
-btc["SMA_S"] = talib.SMA(btc["Close"], timeperiod=sma_short)
-btc["SMA_L"] = talib.SMA(btc["Close"], timeperiod=sma_long)
-btc["Upper_BB"], btc["Middle_BB"], btc["Lower_BB"] = talib.BBANDS(btc["Close"], timeperiod=bb_period)
-btc["RSI"] = talib.RSI(btc["Close"], timeperiod=rsi_period)
-macd, macd_signal, _ = talib.MACD(btc["Close"], fastperiod=macd_fast, slowperiod=macd_slow, signalperiod=macd_signal)
+# Calculate Indicators using pandas-ta
+btc["SMA_S"] = btc["Close"].ta.sma(length=sma_short)
+btc["SMA_L"] = btc["Close"].ta.sma(length=sma_long)
+btc["RSI"] = btc["Close"].ta.rsi(length=rsi_period)
+
+# Bollinger Bands
+bbands = btc["Close"].ta.bbands(length=bb_period)
+btc["Upper_BB"] = bbands[f"BBU_{bb_period}_2.0"]
+btc["Middle_BB"] = bbands[f"BBM_{bb_period}_2.0"]
+btc["Lower_BB"] = bbands[f"BBL_{bb_period}_2.0"]
+
+# MACD
+macd_df = btc["Close"].ta.macd(fast=macd_fast, slow=macd_slow, signal=macd_signal)
+btc["MACD"] = macd_df[f"MACD_{macd_fast}_{macd_slow}_{macd_signal}"]
+btc["MACD_Signal"] = macd_df[f"MACDs_{macd_fast}_{macd_slow}_{macd_signal}"]
 
 # Plot indicators
 fig, axs = plt.subplots(3, figsize=(12, 8), sharex=True)
@@ -46,8 +48,8 @@ axs[0].legend()
 axs[0].set_title("Bitcoin Price with SMA & Bollinger Bands")
 
 # MACD
-axs[1].plot(btc.index, macd, label="MACD", color="blue")
-axs[1].plot(btc.index, macd_signal, label="Signal Line", color="red", linestyle="dashed")
+axs[1].plot(btc.index, btc["MACD"], label="MACD", color="blue")
+axs[1].plot(btc.index, btc["MACD_Signal"], label="Signal Line", color="red", linestyle="dashed")
 axs[1].axhline(0, color="black", linewidth=0.7, linestyle="dotted")
 axs[1].legend()
 axs[1].set_title("MACD Indicator")
