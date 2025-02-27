@@ -1,13 +1,13 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta  # Changed to pandas_ta
+import pandas_ta as ta
 
 # Streamlit UI
 st.title("Bitcoin Technical Analysis Signals")
 st.sidebar.header("Indicator Settings")
 
-# User inputs (keep same as before)
+# User inputs
 sma_short = st.sidebar.slider("SMA Short Period", 10, 100, 50)
 sma_long = st.sidebar.slider("SMA Long Period", 100, 400, 200)
 bb_period = st.sidebar.slider("Bollinger Bands Period", 10, 50, 20)
@@ -34,8 +34,40 @@ macd = ta.macd(btc["Close"], fast=macd_fast, slow=macd_slow, signal=macd_signal)
 btc["MACD"] = macd[f"MACD_{macd_fast}_{macd_slow}_{macd_signal}"]
 btc["MACD_Signal"] = macd[f"MACDs_{macd_fast}_{macd_slow}_{macd_signal}"]
 
-# Rest of the signal logic remains the same
-# ... (keep all signal detection code unchanged)
+# Get latest data
+latest = btc.iloc[-1]
+prev = btc.iloc[-2]
+
+# Signal detection logic
+signals = []
+
+# SMA Crossovers
+if prev["SMA_S"] < prev["SMA_L"] and latest["SMA_S"] > latest["SMA_L"]:
+    signals.append("Golden Cross: SMA Short crossed above SMA Long (Bullish)")
+
+if prev["SMA_S"] > prev["SMA_L"] and latest["SMA_S"] < latest["SMA_L"]:
+    signals.append("Death Cross: SMA Short crossed below SMA Long (Bearish)")
+
+# RSI Conditions
+if latest["RSI"] > 70:
+    signals.append("RSI Overbought: Potential price reversal downward")
+
+if latest["RSI"] < 30:
+    signals.append("RSI Oversold: Potential price reversal upward")
+
+# Bollinger Bands
+if latest["Close"] > latest["Upper_BB"]:
+    signals.append("Price Above Upper Bollinger Band: Market may be overbought")
+
+if latest["Close"] < latest["Lower_BB"]:
+    signals.append("Price Below Lower Bollinger Band: Market may be oversold")
+
+# MACD Crossovers
+if prev["MACD"] < prev["MACD_Signal"] and latest["MACD"] > latest["MACD_Signal"]:
+    signals.append("Bullish MACD Crossover: MACD crossed above Signal Line (Buy Signal)")
+
+if prev["MACD"] > prev["MACD_Signal"] and latest["MACD"] < latest["MACD_Signal"]:
+    signals.append("Bearish MACD Crossover: MACD crossed below Signal Line (Sell Signal)")
 
 # Display signals
 st.subheader("Latest Signals for BTC-USD")
