@@ -1,7 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import talib
 
 # Streamlit UI
 st.title("Bitcoin Technical Analysis Signals")
@@ -19,18 +19,18 @@ macd_signal = st.sidebar.slider("MACD Signal Period", 5, 20, 9)
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
-# Calculate Indicators
-btc["SMA_S"] = ta.sma(btc["Close"], length=sma_short)
-btc["SMA_L"] = ta.sma(btc["Close"], length=sma_long)
-btc["RSI"] = ta.rsi(btc["Close"], length=rsi_period)
-bb = ta.bbands(btc["Close"], length=bb_period)
-macd = ta.macd(btc["Close"], fast=macd_fast, slow=macd_slow, signal=macd_signal)
+# Calculate Indicators using TA-Lib
+btc["SMA_S"] = talib.SMA(btc["Close"], timeperiod=sma_short)
+btc["SMA_L"] = talib.SMA(btc["Close"], timeperiod=sma_long)
+btc["RSI"] = talib.RSI(btc["Close"], timeperiod=rsi_period)
 
-# Add Bollinger Bands and MACD to DataFrame
-btc["Upper_BB"] = bb["BBU_20_2.0"]
-btc["Lower_BB"] = bb["BBL_20_2.0"]
-btc["MACD"] = macd["MACD_12_26_9"]
-btc["MACD_Signal"] = macd["MACDs_12_26_9"]
+# Bollinger Bands
+upper, middle, lower = talib.BBANDS(btc["Close"], timeperiod=bb_period)
+btc["Upper_BB"], btc["Middle_BB"], btc["Lower_BB"] = upper, middle, lower
+
+# MACD
+macd, macd_signal, _ = talib.MACD(btc["Close"], fastperiod=macd_fast, slowperiod=macd_slow, signalperiod=macd_signal)
+btc["MACD"], btc["MACD_Signal"] = macd, macd_signal
 
 # Get latest data
 latest = btc.iloc[-1]
