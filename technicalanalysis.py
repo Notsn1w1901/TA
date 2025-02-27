@@ -26,18 +26,18 @@ if btc.empty:
 
 # Ensure 'Close' column exists and has valid data
 if "Close" not in btc.columns or btc["Close"].dropna().empty:
-    st.error("No valid 'Close' price data found after download.")
+    st.error("No valid 'Close' price data found after download. Try again later.")
     st.write("Downloaded data preview:")
-    st.write(btc.head())  # Debugging output
+    st.write(btc.head())  # Display raw data for debugging
     st.stop()
 
 # Handle missing values
 btc["Close"].fillna(method="ffill", inplace=True)
 
-# Convert 'Close' to a Pandas Series for technical indicators
-close_series = btc["Close"].astype(float)
+# Convert 'Close' to a Pandas Series (1D format)
+close_series = btc["Close"].astype(float).squeeze()
 
-# Calculate Indicators using 'ta' library (with error handling)
+# Calculate Indicators using 'ta' library
 try:
     btc["SMA_S"] = ta.trend.SMAIndicator(close_series, window=sma_short).sma_indicator()
     btc["SMA_L"] = ta.trend.SMAIndicator(close_series, window=sma_long).sma_indicator()
@@ -52,7 +52,6 @@ try:
     macd = ta.trend.MACD(close_series, window_slow=macd_slow, window_fast=macd_fast, window_sign=macd_signal)
     btc["MACD"] = macd.macd()
     btc["MACD_Signal"] = macd.macd_signal()
-
 except Exception as e:
     st.error(f"Error calculating indicators: {e}")
     st.write("BTC data preview:")
