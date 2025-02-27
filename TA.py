@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import pandas_ta as ta
 
 # Streamlit UI
@@ -20,14 +21,14 @@ macd_signal = st.sidebar.slider("MACD Signal Period", 5, 20, 9)
 # Fetch Bitcoin data
 btc = yf.download("BTC-USD", period="6mo", interval="1d")
 
-# Calculate Indicators
-btc["SMA_S"] = btc["Close"].ta.sma(length=sma_short)
-btc["SMA_L"] = btc["Close"].ta.sma(length=sma_long)
-btc["RSI"] = btc["Close"].ta.rsi(length=rsi_period)
-bb = btc["Close"].ta.bbands(length=bb_period)
-macd = btc["Close"].ta.macd(fast=macd_fast, slow=macd_slow, signal=macd_signal)
+# Calculate Indicators using pandas-ta
+btc["SMA_S"] = ta.sma(btc["Close"], length=sma_short)
+btc["SMA_L"] = ta.sma(btc["Close"], length=sma_long)
+btc["RSI"] = ta.rsi(btc["Close"], length=rsi_period)
+bb = ta.bbands(btc["Close"], length=bb_period)
+macd = ta.macd(btc["Close"], fast=macd_fast, slow=macd_slow, signal=macd_signal)
 
-# Merge Bollinger Bands and MACD
+# Add Bollinger Bands and MACD to DataFrame
 btc["Upper_BB"] = bb["BBU_20_2.0"]
 btc["Lower_BB"] = bb["BBL_20_2.0"]
 btc["MACD"] = macd["MACD_12_26_9"]
